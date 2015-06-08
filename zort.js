@@ -53,8 +53,8 @@ Zort plugin - Sort/filter tables
                         var val1 = row1.find("td")[col].innerHTML;
                         var val2 = row2.find("td")[col].innerHTML;
 
-                        if (!isNaN(val1)) val1 = val1 * 1;
-                        if (!isNaN(val2)) val2 = val2 * 1;
+                        if (val1 != "" && !isNaN(val1)) val1 = val1 * 1;
+                        if (val2 != "" && !isNaN(val2)) val2 = val2 * 1;
 
                         if (order == "asc") {
                             if (val1 > val2) {
