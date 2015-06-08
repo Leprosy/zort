@@ -104,6 +104,7 @@ Zort plugin - Sort/filter tables
                     $th.addClass("desc");
                     sort(index, "desc");
                 } else if ($th.hasClass("desc")) { //sorted desc, reset table
+                    $th.removeClass("desc");
                     reset();
                 } else { //not sorted, sort asc
                     $th.addClass("asc");
@@ -147,7 +148,7 @@ Zort plugin - Sort/filter tables
                     for (j = 0; j < cells.length; ++j) {
                         if (col == undefined || col == j) {
                             var text = cells[j].innerHTML.toLowerCase();
-    
+
                             if (text.indexOf(str) > -1) {
                                 visible = true;
                             }
@@ -163,8 +164,19 @@ Zort plugin - Sort/filter tables
             }
 
             function reset() {
-                table.html(backup);
-                setHandlers();
+                var backTable = $('<table>');
+                backTable.html(backup);
+                var trs = backTable.find("tr");
+
+                table.find("tr").each(function(i, el) {
+                    var tr = $(trs[i]);
+
+                    $(el).find("td, th").each(function(j, cell) {
+                        var td = $(tr.find("td, th")[j]);
+                        console.log(td.html(), $(cell).html());
+                        $(cell).html(td.html());
+                    });
+                });
             }
 
             // Init
