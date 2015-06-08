@@ -10,25 +10,91 @@ Zort plugin - Sort/filter tables
             var table = $(this);
             table.css("position", "relative");
 
-            function addFilter() {
+            function addFilterBox() {
                 var search = $('<div>');
                 var input = $('<input>');
-                input.attr("placeholder", "Enter search string...");
+                input.attr("placeholder", "Search table...");
+
                 input.keyup(function(ev) {
                     filter(this.value);
                 });
 
                 search.append(input);
                 table.after(search);
-            };
+            }
 
             function setHandlers() {
                 table.find("th").click(function(ev) {
-                    handler(this, ev);
+                    doSorting(this, ev);
+                }).contextmenu(function(ev) {
+                    showMenu(this, ev);
+                    return false;
                 }).css("cursor", "pointer").addClass("zort");
-            };
+            }
 
-            function handler(th, ev) {
+            function showMenu(th, ev) {
+                $('.zort-menu').remove();
+
+                // menu
+                var menu = $('<div class="zort-menu">');
+                menu.css({
+                    position: "absolute",
+                    top: ev.clientY + "px",
+                    left: ev.clientX + "px",
+                    background: "#ccc",
+                    border: "1px solid #000",
+                    padding: "4px"
+                });
+
+                // content
+                table.find("th").each(function(i, el) {
+                    var val = $(el).hasClass("zort-toggled") ? "" : "checked";
+                    var link = $('<label><input ' + val + ' id="' + i + '" type="checkbox">' + el.innerHTML + '</label><br />');
+                    link.css("cursor", "pointer");
+                    link.find('input').click(function(ev) {
+                        toggle(this.id);
+                    });
+                    menu.append(link);
+                });
+
+                menu.append("<hr />");
+                var input = $('<input>');
+                input.attr("placeholder", "Search column...");
+                input.keyup(function(ev) {
+                    filter(this.value, $(th).index());
+                });
+                menu.append(input);
+
+                close = $('<br /><br /><button>Close</button>');
+                close.click(function() { $('.zort-menu').remove(); });
+                menu.append(close);
+
+                $("body").append(menu);
+            }
+
+            function toggle(col) {
+                var $th = $(table.find("th")[col]);
+
+                if ($th.hasClass("zort-toggled")) {
+                    $th.removeClass("zort-toggled");
+                } else {
+                    $th.addClass("zort-toggled");
+                }
+
+                var trs = table.find("tr");
+
+                trs.each(function(i, tr) {
+                    var tds = $(tr).find("td, th");
+
+                    tds.each(function(j, td) {
+                        if (j == col) {
+                            $(td).toggle();
+                        }
+                    });
+                });
+            }
+
+            function doSorting(th, ev) {
                 var $th = $(th);
                 var index = $(th).index();
                 $th.siblings().removeClass('asc desc');
@@ -43,7 +109,7 @@ Zort plugin - Sort/filter tables
                     $th.addClass("asc");
                     sort(index, "asc");
                 }
-            };
+            }
 
             function sort(col, order) {
                 for (j = 0; j < total; ++j) {
@@ -67,10 +133,11 @@ Zort plugin - Sort/filter tables
                         }
                     }
                 }
-            };
+            }
 
-            function filter(str) {
+            function filter(str, col) {
                 str = str.toLowerCase();
+                str = str.replace("<", "&lt;").replace(">", "&gt;");
 
                 for (i = 1; i <= total; ++i) {
                     var row = $(table.find("tr")[i]);
@@ -78,10 +145,12 @@ Zort plugin - Sort/filter tables
                     var visible = false;
 
                     for (j = 0; j < cells.length; ++j) {
-                        var text = cells[j].innerHTML.toLowerCase();
-
-                        if (text.indexOf(str) > -1) {
-                            visible = true;
+                        if (col == undefined || col == j) {
+                            var text = cells[j].innerHTML.toLowerCase();
+    
+                            if (text.indexOf(str) > -1) {
+                                visible = true;
+                            }
                         }
                     }
 
@@ -91,16 +160,16 @@ Zort plugin - Sort/filter tables
                         row.show();
                     }
                 }
-            };
+            }
 
             function reset() {
                 table.html(backup);
                 setHandlers();
-            };
+            }
 
             // Init
             setHandlers();
-            addFilter();
+            addFilterBox();
         });
     };
 }(jQuery));
